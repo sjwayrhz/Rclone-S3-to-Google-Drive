@@ -3,7 +3,7 @@ name: Rclone S3 to Google Drive
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 16 * * *' 
+    - cron: '0 16 * * *'
 
 jobs:
   rclone-sync:
@@ -17,10 +17,18 @@ jobs:
         run: |
           sudo -v && curl https://rclone.org/install.sh | sudo bash
 
-      - name: Configure Rclone
+      - name: Configure Rclone   
+        env:
+          RCLONE_CONF_CONTENT: ${{ secrets.RCLONE_CONFIG_CONTENT }}
         run: |
           mkdir -p ~/.config/rclone/
-          echo "${{ secrets.RCLONE_CONFIG_CONTENT }}" > ~/.config/rclone/rclone.conf
+          echo "$RCLONE_CONF_CONTENT" > ~/.config/rclone/rclone.conf
+          
+          # 调试步骤（可选）：检查文件是否写入成功，但只看头部，不打印敏感 Token
+          echo "Checking config file existence..."
+          ls -l ~/.config/rclone/rclone.conf
+          echo "Head of config file (safe check):"
+          head -n 5 ~/.config/rclone/rclone.conf
 
       - name: Rclone Run
         run: |
@@ -29,4 +37,4 @@ jobs:
           --buffer-size 32M \
           --drive-chunk-size 64M \
           --transfers 8 \
-          --checkers 16
+          --checkers 16 \
